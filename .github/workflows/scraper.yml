@@ -1,0 +1,31 @@
+name: Atualizar eventos econômicos diariamente
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Roda às 09:00 UTC todos os dias (06:00 no Brasil)
+  workflow_dispatch:      # Permite rodar manualmente também
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do repositório
+      uses: actions/checkout@v3
+
+    - name: Instalar dependências
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip
+        pip install beautifulsoup4 pytz requests
+
+    - name: Executar script
+      run: python3 calendario_investing.py
+
+    - name: Commit dos arquivos gerados
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add eventos_hoje.json eventos_hoje.csv || echo "Nada novo"
+        git commit -m "Atualização automática dos eventos do dia" || echo "Nada para commitar"
+        git push || echo "Nada para enviar"
